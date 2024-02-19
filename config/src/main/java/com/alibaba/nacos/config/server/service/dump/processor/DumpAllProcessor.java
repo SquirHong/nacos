@@ -40,12 +40,12 @@ import static com.alibaba.nacos.config.server.utils.LogUtil.DEFAULT_LOG;
  * @date 2020/7/5 12:19 PM
  */
 public class DumpAllProcessor implements NacosTaskProcessor {
-    
+
     public DumpAllProcessor(DumpService dumpService) {
         this.dumpService = dumpService;
         this.persistService = dumpService.getPersistService();
     }
-    
+
     @Override
     public boolean process(NacosTask task) {
         long currentMaxId = persistService.findConfigMaxId();
@@ -59,19 +59,20 @@ public class DumpAllProcessor implements NacosTaskProcessor {
                     if (cf.getDataId().equals(AggrWhitelist.AGGRIDS_METADATA)) {
                         AggrWhitelist.load(cf.getContent());
                     }
-                    
+
                     if (cf.getDataId().equals(ClientIpWhiteList.CLIENT_IP_WHITELIST_METADATA)) {
                         ClientIpWhiteList.load(cf.getContent());
                     }
-                    
+
                     if (cf.getDataId().equals(SwitchService.SWITCH_META_DATAID)) {
                         SwitchService.load(cf.getContent());
                     }
-                    
+
+                    // 把查询到配置写入到磁盘
                     boolean result = ConfigCacheService
                             .dump(cf.getDataId(), cf.getGroup(), cf.getTenant(), cf.getContent(), cf.getLastModified(),
                                     cf.getType());
-                    
+
                     final String content = cf.getContent();
                     final String md5 = MD5Utils.md5Hex(content, Constants.ENCODE);
                     LogUtil.DUMP_LOG.info("[dump-all-ok] {}, {}, length={}, md5={}",
@@ -85,10 +86,10 @@ public class DumpAllProcessor implements NacosTaskProcessor {
         }
         return true;
     }
-    
+
     static final int PAGE_SIZE = 1000;
-    
+
     final DumpService dumpService;
-    
+
     final PersistService persistService;
 }
