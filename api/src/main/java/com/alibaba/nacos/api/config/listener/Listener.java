@@ -20,21 +20,21 @@ import java.util.concurrent.Executor;
 
 /**
  * Listener for watch config.
- *
+ * 接收指定配置的更新
  * @author Nacos
  */
 public interface Listener {
-    
+
     /**
      * Get executor for execute this receive.
-     *
+     *指定执行通知时的线程池
      * @return Executor
      */
     Executor getExecutor();
-    
+
     /**
      * Receive config info.
-     *
+     * 负责接收更新内容
      * @param configInfo config info
      */
     void receiveConfigInfo(final String configInfo);

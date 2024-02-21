@@ -73,6 +73,11 @@ public class NacosConfigService implements ConfigService {
 
     private final ConfigFilterChainManager configFilterChainManager = new ConfigFilterChainManager();
 
+    /**
+     *  在configFactory中通过反射被调用
+     * @param properties
+     * @throws NacosException
+     */
     public NacosConfigService(Properties properties) throws NacosException {
         ValidatorUtils.checkInitParam(properties);
         String encodeTmp = properties.getProperty(PropertyKeyConst.ENCODE);

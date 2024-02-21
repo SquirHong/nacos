@@ -28,16 +28,18 @@ import java.util.Properties;
  * @author Nacos
  */
 public class ConfigFactory {
-    
+
     /**
      * Create Config.
      *
+     * 创建configService，通过反射调用其实现类NacosConfigService，
      * @param properties init param
      * @return ConfigService
      * @throws NacosException Exception
      */
     public static ConfigService createConfigService(Properties properties) throws NacosException {
         try {
+
             Class<?> driverImplClass = Class.forName("com.alibaba.nacos.client.config.NacosConfigService");
             Constructor constructor = driverImplClass.getConstructor(Properties.class);
             ConfigService vendorImpl = (ConfigService) constructor.newInstance(properties);
@@ -46,7 +48,7 @@ public class ConfigFactory {
             throw new NacosException(NacosException.CLIENT_INVALID_PARAM, e);
         }
     }
-    
+
     /**
      * Create Config.
      *
