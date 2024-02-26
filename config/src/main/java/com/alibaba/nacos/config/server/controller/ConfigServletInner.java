@@ -84,9 +84,11 @@ public class ConfigServletInner {
             return HttpServletResponse.SC_OK + "";
         }
 
+        // 兼容短轮训逻辑
         // Compatible with short polling logic.
         List<String> changedGroups = MD5Util.compareMd5(request, response, clientMd5Map);
 
+        // 处理短轮训result
         // Compatible with short polling result.
         String oldResult = MD5Util.compareMd5OldResult(changedGroups);
         String newResult = MD5Util.compareMd5ResultString(changedGroups);

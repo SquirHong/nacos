@@ -114,7 +114,7 @@ public class ConfigController {
 
     /**
      * Adds or updates non-aggregated data.
-     *
+     * 图形化界面更新配置
      * @throws NacosException NacosException.
      */
     @PostMapping
@@ -164,7 +164,7 @@ public class ConfigController {
         configInfo.setType(type);
         if (StringUtils.isBlank(betaIps)) {
             if (StringUtils.isBlank(tag)) {
-                // 新增配置或者修改配置
+                // 在DB新增配置或者修改配置
                 persistService.insertOrUpdate(srcIp, srcUser, configInfo, time, configAdvanceInfo, true);
                 // 发布配置改变事件 重点
                 ConfigChangePublisher
@@ -188,6 +188,7 @@ public class ConfigController {
 
     /**
      * Get configure board infomation fail.
+     *
      *
      * @throws ServletException ServletException.
      * @throws IOException      IOException.

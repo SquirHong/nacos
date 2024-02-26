@@ -136,6 +136,7 @@ public class NacosConfigService implements ConfigService {
         worker.removeTenantListener(dataId, group, listener);
     }
 
+    // 在刷新完配置的bean之后，下次使用时无bena存在时会再次调用
     private String getConfigInner(String tenant, String dataId, String group, long timeoutMs) throws NacosException {
         group = null2defaultGroup(group);
         ParamUtils.checkKeyParam(dataId, group);

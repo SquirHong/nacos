@@ -66,6 +66,7 @@ public class DefaultPublisher extends Thread implements EventPublisher {
         this.eventType = type;
         this.queueMaxSize = bufferSize;
         this.queue = new ArrayBlockingQueue<Event>(bufferSize);
+        // 开始执行run()方法
         start();
     }
 
@@ -173,7 +174,7 @@ public class DefaultPublisher extends Thread implements EventPublisher {
         final long currentEventSequence = event.sequence();
 
         // Notification single event listener
-        // 循环通知监听事件
+        // 循环通知
         for (Subscriber subscriber : subscribers) {
             // Whether to ignore expiration events
             if (subscriber.ignoreExpireEvent() && lastEventSequence > currentEventSequence) {

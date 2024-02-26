@@ -254,6 +254,7 @@ public class LongPollingService {
             // Do nothing but set fix polling timeout.
         } else {
             long start = System.currentTimeMillis();
+            // 如果服务端配置有变更，则立马返回
             List<String> changedGroups = MD5Util.compareMd5(req, rsp, clientMd5Map);
             if (changedGroups.size() > 0) {
                 generateResponse(req, rsp, changedGroups);
@@ -294,6 +295,7 @@ public class LongPollingService {
         NotifyCenter.registerToPublisher(LocalDataChangeEvent.class, NotifyCenter.ringBufferSize);
 
         // Register A Subscriber to subscribe LocalDataChangeEvent.
+        // 只处理 LocalDataChangeEvent 事件，服务端第一次启动时
         NotifyCenter.registerSubscriber(new Subscriber() {
 
             @Override
@@ -331,8 +333,10 @@ public class LongPollingService {
         public void run() {
             try {
                 ConfigCacheService.getContentBetaMd5(groupKey);
+                // 遍历订阅的客户端
                 for (Iterator<ClientLongPolling> iter = allSubs.iterator(); iter.hasNext(); ) {
                     ClientLongPolling clientSub = iter.next();
+                    // 找到 ClientLongPolling 轮训的 groupKey 立刻进行通知，
                     if (clientSub.clientMd5Map.containsKey(groupKey)) {
                         // If published tag is not in the beta list, then it skipped.
                         if (isBeta && !CollectionUtils.contains(betaIps, clientSub.ip)) {
@@ -345,6 +349,7 @@ public class LongPollingService {
                         }
 
                         getRetainIps().put(clientSub.ip, System.currentTimeMillis());
+                        // 从 allSubs 删除订阅关系 无需等待29.5s
                         iter.remove(); // Delete subscribers' relationships.
                         LogUtil.CLIENT_LOG
                                 .info("{}|{}|{}|{}|{}|{}|{}", (System.currentTimeMillis() - changeTime), "in-advance",
@@ -400,7 +405,7 @@ public class LongPollingService {
                     try {
                         getRetainIps().put(ClientLongPolling.this.ip, System.currentTimeMillis());
 
-                        // Delete subsciber's relations.
+                        // Delete subsciber's relations. 删除订阅关系
                         allSubs.remove(ClientLongPolling.this);
 
                         if (isFixedPolling()) {

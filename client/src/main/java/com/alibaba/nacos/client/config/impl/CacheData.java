@@ -208,6 +208,9 @@ public class CacheData {
                     cr.setContent(content);
                     configFilterChainManager.doFilter(null, cr);
                     String contentTmp = cr.getContent();
+                    // 关键！！！
+                    // 这里的 receiveConfigInfo 调用的是 com.alibaba.cloud.nacos.refresh.NacosContextRefresher#registerNacosListener 内部类Listener的innerReceive方法，
+                    // void receiveConfigInfo(String configInfo)  -> void innerReceive(dataId, group, configInfo)
                     listener.receiveConfigInfo(contentTmp);
 
                     // compare lastContent and content

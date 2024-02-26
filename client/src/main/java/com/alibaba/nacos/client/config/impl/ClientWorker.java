@@ -328,6 +328,7 @@ public class ClientWorker implements Closeable {
             // 标记！ 使用了本地配置文件
             cacheData.setUseLocalConfigInfo(true);
             cacheData.setLocalConfigInfoVersion(path.lastModified());
+            // setContent 会同步更改 md5
             cacheData.setContent(content);
 
             // 记录 本地配置文件被创建
@@ -426,6 +427,7 @@ public class ClientWorker implements Closeable {
         Map<String, String> params = new HashMap<String, String>(2);
         params.put(Constants.PROBE_MODIFY_REQUEST, probeUpdateString);
         Map<String, String> headers = new HashMap<String, String>(2);
+        // 在发送http时，会判断此参数是否为null，如不为null，则添加一个 ClientLongPolling到线程池里，
         headers.put("Long-Pulling-Timeout", "" + timeout);
 
         // told server do not hang me up if new initializing cacheData added in
@@ -602,7 +604,8 @@ public class ClientWorker implements Closeable {
                     }
                 }
 
-                // check server config 检查服务器配置中是否有变更，并返回变更的配置组合键列表
+                // check server config 检查该任务下所有 cacheData 在服务器配置中是否有变更，并返回变更的配置组合键列表 这里不会立马返回，
+                // 如果服务端在29.5s内配置发生变更，则立马返回，如果没有变更，则 29.5s+s 返回
                 List<String> changedGroupKeys = checkUpdateDataIds(cacheDatas, inInitializingCacheList);
                 if (!CollectionUtils.isEmpty(changedGroupKeys)) {
                     LOGGER.info("get changedGroupKeys:" + changedGroupKeys);
@@ -618,8 +621,10 @@ public class ClientWorker implements Closeable {
                         tenant = key[2];
                     }
                     try {
+                        // 获取服务端具体变更之后的配置信息
                         String[] ct = getServerConfig(dataId, group, tenant, 3000L);
                         CacheData cache = cacheMap.get(GroupKey.getKeyTenant(dataId, group, tenant));
+                        // setContent方法同步设置md5
                         cache.setContent(ct[0]);
                         if (null != ct[1]) {
                             cache.setType(ct[1]);
@@ -634,9 +639,11 @@ public class ClientWorker implements Closeable {
                         LOGGER.error(message, ioe);
                     }
                 }
+                // 通知监听器刷新nacos数据
                 for (CacheData cacheData : cacheDatas) {
                     if (!cacheData.isInitializing() || inInitializingCacheList
                             .contains(GroupKey.getKeyTenant(cacheData.dataId, cacheData.group, cacheData.tenant))) {
+                        // 通知CacheData的监听器
                         cacheData.checkListenerMd5();
                         cacheData.setInitializing(false);
                     }
