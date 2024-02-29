@@ -223,7 +223,9 @@ public class ClientWorker implements Closeable {
         cacheData = new CacheData(configFilterChainManager, agent.getName(), dataId, group, tenant);
         // multiple listeners on the same dataid+group and race condition
         CacheData lastCacheData = cacheMap.putIfAbsent(key, cacheData);
+        // put成功，则返回null，
         if (lastCacheData == null) {
+            // 对 cacheData 进行初始化
             //fix issue # 1317
             if (enableRemoteSyncConfig) {
                 String[] ct = getServerConfig(dataId, group, tenant, 3000L);
@@ -338,6 +340,7 @@ public class ClientWorker implements Closeable {
             return;
         }
 
+        // 如果使用了 本地配置，那么就不能通知业务监听器并且不会收到服务器的通知
         // If use local config info, then it doesn't notify business listener and notify after getting from server.
         if (cacheData.isUseLocalConfigInfo() && !path.exists()) {
             cacheData.setUseLocalConfigInfo(false);
@@ -346,6 +349,7 @@ public class ClientWorker implements Closeable {
             return;
         }
 
+        // 如果使用了本地配置 并且 本地配置存在，并且该cacheData使用本地配置 的版本和 本地配置被修改的版本不一致（本地文件版本（最后修改时间）更高）
         // When it changed.
         if (cacheData.isUseLocalConfigInfo() && path.exists() && cacheData.getLocalConfigInfoVersion() != path
                 .lastModified()) {
@@ -394,6 +398,7 @@ public class ClientWorker implements Closeable {
     List<String> checkUpdateDataIds(List<CacheData> cacheDatas, List<String> inInitializingCacheList) throws Exception {
         StringBuilder sb = new StringBuilder();
         for (CacheData cacheData : cacheDatas) {
+            // 所有 没有 使用 本地配置 的 CacheData 汇总
             if (!cacheData.isUseLocalConfigInfo()) {
                 sb.append(cacheData.dataId).append(WORD_SEPARATOR);
                 sb.append(cacheData.group).append(WORD_SEPARATOR);
@@ -593,7 +598,7 @@ public class ClientWorker implements Closeable {
                     if (cacheData.getTaskId() == taskId) {
                         cacheDatas.add(cacheData);
                         try {
-                            // 检查本地配置
+                            // 这里拿所有任务的cacheData去检查本地配置，不仅仅是单个任务下的
                             checkLocalConfig(cacheData);
                             if (cacheData.isUseLocalConfigInfo()) {
                                 cacheData.checkListenerMd5();
@@ -641,6 +646,7 @@ public class ClientWorker implements Closeable {
                 }
                 // 通知监听器刷新nacos数据
                 for (CacheData cacheData : cacheDatas) {
+                    // cacheData不处于初始化状态 或
                     if (!cacheData.isInitializing() || inInitializingCacheList
                             .contains(GroupKey.getKeyTenant(cacheData.dataId, cacheData.group, cacheData.tenant))) {
                         // 通知CacheData的监听器

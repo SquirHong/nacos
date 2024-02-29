@@ -262,6 +262,7 @@ public class LongPollingService {
                         RequestUtil.getRemoteIp(req), "polling", clientMd5Map.size(), probeRequestSize,
                         changedGroups.size());
                 return;
+                // 如果有要初始化的cacheData存在，则不挂起，直接返回
             } else if (noHangUpFlag != null && noHangUpFlag.equalsIgnoreCase(TRUE_STR)) {
                 LogUtil.CLIENT_LOG.info("{}|{}|{}|{}|{}|{}|{}", System.currentTimeMillis() - start, "nohangup",
                         RequestUtil.getRemoteIp(req), "polling", clientMd5Map.size(), probeRequestSize,
